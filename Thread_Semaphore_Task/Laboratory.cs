@@ -47,9 +47,10 @@ namespace Thread_Semaphore_Task
                 return;
             }
 
-            for(int i = 0; i < _allScientists-1; ++i)
+            for(int i = 0; i < _allScientists; ++i)
             {
-                Thread thread = new Thread(() => StartScientistWork(i));
+                int index = i; //important!
+                Thread thread = new Thread(() => StartScientistWork(index));
                 thread.Start();
             }
                 
