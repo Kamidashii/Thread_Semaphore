@@ -12,6 +12,9 @@ namespace Thread_Semaphore_Task
         private Research research;
         private object researchLocker;
 
+        delegate void FinishWork();
+        FinishWork StopAllWorkingThreads;
+
         private bool researchAlreadyEnded=false;
 
         private readonly int _workedScientists;
@@ -59,11 +62,11 @@ namespace Thread_Semaphore_Task
         private void StartScientistWork(int scientistId)
         {
             _semaphore.WaitOne();
+            StopAllWorkingThreads += () => { _scientists[scientistId].workFinished = true; };
             int resolved = _scientists[scientistId].StartWork();
 
             lock (researchLocker)
             {
-
                 if (researchAlreadyEnded)
                 {
                     return;
@@ -72,10 +75,12 @@ namespace Thread_Semaphore_Task
                 research.PushProgress(resolved);
                 if (research.IsResearchResolved())
                 {
+                    StopAllWorkingThreads?.Invoke();
+
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Researching ended!");
                     TimeSpan timeSpent = research.GetResearchResolvingTime();
-                    Console.WriteLine($"Spent {timeSpent.Days} dd {timeSpent.Hours}:{timeSpent.Minutes}:{timeSpent.Seconds} {timeSpent.Milliseconds}");
+                    Console.WriteLine($"Spent {timeSpent.Days} dd {timeSpent.Hours}:{timeSpent.Minutes}:{timeSpent.Seconds} {timeSpent.Milliseconds} ms");
                     Console.ForegroundColor = ConsoleColor.Gray;
                     Console.WriteLine();
                     researchAlreadyEnded = true;
